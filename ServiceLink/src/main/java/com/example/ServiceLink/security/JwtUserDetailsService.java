@@ -21,11 +21,11 @@ public class JwtUserDetailsService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
     Optional<User> optUser;
-
+    byte[] userStatus={User.Status.ACTIVE.value,User.Status.SUPER_ADMIN.value};
     if (isEmail(identifier)) {
-      optUser = userRepository.findByEmailAndStatus(identifier, User.Status.ACTIVE.value);
+      optUser = userRepository.findByEmailAndStatusIn(identifier, userStatus);
     } else {
-      optUser = userRepository.findByPhoneAndStatus(identifier, User.Status.ACTIVE.value);
+      optUser = userRepository.findByPhoneAndStatusIn(identifier, userStatus);
     }
 
     if (optUser.isPresent()) {

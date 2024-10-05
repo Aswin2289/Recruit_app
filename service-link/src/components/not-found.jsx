@@ -13,7 +13,7 @@ function NotFound() {
       } else if (role === 3) {
         navigate('/dashboard'); // Navigate to employeeDashboard if role is 3
       }else if (role === 1) {
-        navigate('/dashbdashboardoardAdmin'); // Navigate to admin dashboard if role is 1
+        navigate('/dashboard'); // Navigate to admin dashboard if role is 1
       }else if (role === 4) {
         navigate('/dashboard'); // Navigate to admin dashboard if role is 1
       }

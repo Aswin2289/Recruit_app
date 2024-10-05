@@ -16,7 +16,7 @@ const useAuth = () => {
     return {
       username: localStorage.getItem('username'),
       role: parseInt(localStorage.getItem('role')),
-      id: localStorage.getItem('employeeId'),
+      email: localStorage.getItem('email'),
       userId: localStorage.getItem('userId'),
     };
   };

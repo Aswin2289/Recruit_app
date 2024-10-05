@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-
+import logo from "../../assest/linkedin.png"
 const Header = () => {
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -27,8 +27,8 @@ const Header = () => {
       <div className="container mx-auto flex justify-between items-center p-4">
         {/* Logo and App Name */}
         <div className="flex items-center space-x-3">
-          <img src="/path-to-your-logo.png" alt="Logo" className="h-10 w-10" />
-          <span className="text-2xl font-bold">ServiceLink</span>
+          <img src={logo} alt="Logo" className="h-10 w-10" />
+          <span className="text-2xl font-bold">NetForce Tech</span>
         </div>
 
         {/* Navigation Links */}
@@ -43,21 +43,49 @@ const Header = () => {
               className="hover:text-gray-300"
               onClick={() => setIsServicesOpen(!isServicesOpen)}
             >
-              Services
+              My Post
             </button>
             {isServicesOpen && (
               <div className="absolute bg-white text-black shadow-lg mt-2 rounded w-48 z-10">
                 <a
-                  href="/dashboard"
-                  className="block px-4 py-2 hover:bg-gray-200 text-center truncate"
+                  href="/createpost"
+                  className="flex gap-1 items-center justify-center px-4 py-2 hover:bg-gray-200 text-center truncate"
                 >
-                  Service 1
+                  Create Post
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="ml-2 w-5 h-5"
+                  >
+                    <defs>
+                      <style>
+                        {
+                          ".cls-1{fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:2px;}"
+                        }
+                      </style>
+                    </defs>
+                    <title>78.add</title>
+                    <g id="_78.add" data-name="78.add">
+                      <rect
+                        className="cls-1"
+                        x="1"
+                        y="1"
+                        width="22"
+                        height="22"
+                        rx="3"
+                        ry="3"
+                      />
+                      <line className="cls-1" x1="12" y1="6" x2="12" y2="18" />
+                      <line className="cls-1" x1="18" y1="12" x2="6" y2="12" />
+                    </g>
+                  </svg>
                 </a>
+
                 <a
-                  href="/dashboard"
+                  href="/viewpost"
                   className="block px-4 py-2 hover:bg-gray-200 text-center truncate"
                 >
-                  Service 2
+                  View Post
                 </a>
                 <a
                   href="/dashboard"
@@ -98,7 +126,7 @@ const Header = () => {
             {isProfileOpen && (
               <div className="absolute right-0 bg-white text-black shadow-lg mt-2 rounded w-48 z-10">
                 <a
-                  href="/dashboard"
+                  href="/viewCompanyProfile"
                   className="block px-4 py-2 hover:bg-gray-200 text-center truncate"
                 >
                   View Profile

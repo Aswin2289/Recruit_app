@@ -1,5 +1,6 @@
 package com.example.ServiceLink.controller;
 
+import com.example.ServiceLink.entity.User;
 import com.example.ServiceLink.entity.dto.requestDTO.LoginRequestDTO;
 import com.example.ServiceLink.entity.dto.requestDTO.UserRequestDTO;
 import com.example.ServiceLink.entity.dto.responseDTO.SuccessResponseDTO;
@@ -9,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -35,5 +33,12 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<Object> loginUser(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         return userService.login(loginRequestDTO);
+    }
+
+    @PostMapping("/userDetail/{id}")
+    public ResponseEntity<Object> getUserDetail(@PathVariable Integer id) {
+        byte status=1;
+        User user=  userService.getUserDetail(id, status);
+        return ResponseEntity.ok(user);
     }
 }

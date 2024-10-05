@@ -1,11 +1,13 @@
 package com.example.ServiceLink.service.Impl;
 
+import com.example.ServiceLink.entity.Applicant;
 import com.example.ServiceLink.entity.Role;
 import com.example.ServiceLink.entity.User;
 import com.example.ServiceLink.entity.dto.requestDTO.LoginRequestDTO;
 import com.example.ServiceLink.entity.dto.requestDTO.UserRequestDTO;
 import com.example.ServiceLink.entity.dto.responseDTO.JwtResponseDTO;
 import com.example.ServiceLink.exceptionhandler.BadRequestException;
+import com.example.ServiceLink.repository.ApplicantRepository;
 import com.example.ServiceLink.repository.RoleRepository;
 import com.example.ServiceLink.repository.UserRepository;
 import com.example.ServiceLink.security.JwtUserDetailsService;
@@ -23,8 +25,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +44,7 @@ public class UserServiceImpl implements UserService {
     private final CommonUtil commonUtil;
     private final EmailService emailService;
     private final TokenManager tokenManager;
+    private final ApplicantRepository applicantRepository;
 
     private final byte[] userStatus = {User.Status.ACTIVE.value};
     private final byte[] userStatusCheck = {User.Status.ACTIVE.value,User.Status.OTP_VERIFY.value};
@@ -57,6 +63,7 @@ public class UserServiceImpl implements UserService {
         } else {
             existingUser = userRepository.findByPhoneAndStatusIn(userRequestDTO.getPhoneNumber(), userStatusCheck);
         }
+        commonUtil.validationAddUser();
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             if (user.getStatus() != User.Status.ACTIVE.value) {
@@ -85,6 +92,8 @@ public class UserServiceImpl implements UserService {
 
             // Save the user
             userRepository.save(new User(userRequestDTO, role));
+
+
         }
     }
 
@@ -119,6 +128,25 @@ public class UserServiceImpl implements UserService {
         jwtResponseDTO.setId(userDetails.getUsername());
         jwtResponseDTO.setUserId(optUser.get().getId());
         return new ResponseEntity<>(jwtResponseDTO, HttpStatus.OK);
+    }
+
+    @Override
+    public User getUserDetail(Integer id,byte status) {
+        Integer userId=0;
+        if (status==1){
+            byte[] applicantStatus={Applicant.Status.APPLIED.value,Applicant.Status.REJECTED.value};
+            Applicant applicant=applicantRepository.findByIdAndStatusIn(id,applicantStatus).orElseThrow(
+                    ()->new BadRequestException(messageSource.getMessage("APPLICANT_NOT_FOUND", null, Locale.ENGLISH)));
+
+            userId= Math.toIntExact(applicant.getUser().getId());
+        }
+        else {
+            userId=id;
+        }
+
+        byte[] userStatus={User.Status.ACTIVE.value};
+
+        return userRepository.findByIdAndStatusIn(userId, userStatus).orElseThrow(() -> new BadRequestException(messageSource.getMessage("USER_NOT_FOUND", null, Locale.ENGLISH)));
     }
 
 

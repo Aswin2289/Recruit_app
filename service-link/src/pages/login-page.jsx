@@ -11,9 +11,11 @@ import errorMessages from "../services/errorMessages";
 
 // Zod schema for form validation
 const schema = z.object({
-    username: z.string().email({ message: "Invalid email address" }),
-    password: z
-    .string()
+  username: z.string()
+    .refine(val => /\S+@\S+\.\S+/.test(val) || /^[0-9]{10,}$/.test(val), {
+      message: "Invalid email or phone number",
+    }),
+  password: z.string()
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
@@ -35,16 +37,16 @@ function LoginPage() {
       toast.success("Login successful");
 
       const role = localStorage.getItem("role");
-      if (role === "2") {
-        navigate("/dashboard");
-      } else if (role === "3") {
-        navigate("/dashboard");
-      } else if (role === "1") {
-        navigate("/dashboard");
-      } else if (role === "4") {
-        navigate("/dashboard");
-      } else if (role === "5") {
-        navigate("/dashboard");
+      switch (role) {
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+        case "5":
+          navigate("/dashboard");
+          break;
+        default:
+          navigate("/dashboard");
       }
     } catch (error) {
       const errorMessage = error.response?.data?.errorCode
@@ -60,7 +62,7 @@ function LoginPage() {
   };
 
   const handleSignUp = () => {
-    navigate("/signup"); // Navigate to the Sign Up page
+    navigate("/register"); // Navigate to the Sign Up page
   };
 
   return (
@@ -96,19 +98,19 @@ function LoginPage() {
           <div className="mb-4">
             <label
               className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="email"
+              htmlFor="username"
             >
               Email or Phone Number
             </label>
             <input
               className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-indigo-500"
-              type="email"
+              type="text"
               id="username"
               placeholder="Enter your email or phone number"
               {...register("username")}
             />
-            {errors.email && (
-              <p className="text-red-500">{errors.email.message}</p>
+            {errors.username && (
+              <p className="text-red-500">{errors.username.message}</p>
             )}
           </div>
 

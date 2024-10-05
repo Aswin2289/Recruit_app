@@ -1,15 +1,15 @@
 import React from 'react';
 import Header from '../components/header/header';
-import Dashboard from '../components/dashboard';
+import DashboardCompany from '../components/dashboard-company';
 
 function DashboardPage() {
   return (
-    <>
+    <div className="flex flex-col h-screen">
       <Header />
-      <div className="pt-20"> {/* Adjust padding based on header height */}
-        <Dashboard />
+      <div className="flex-1 mt-20">
+        <DashboardCompany />
       </div>
-    </>
+    </div>
   );
 }
 

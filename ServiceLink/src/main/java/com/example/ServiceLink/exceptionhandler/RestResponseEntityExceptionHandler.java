@@ -131,7 +131,7 @@ public final class RestResponseEntityExceptionHandler extends ResponseEntityExce
             }
             errorMessage = errorCode;
         }
-        ErrorResponseDTO responseView = new ErrorResponseDTO(errorMessage, errorCode);
+        ErrorResponseDTO responseView = new ErrorResponseDTO( errorCode,errorMessage);
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         return new ResponseEntity<>(responseView, httpHeaders, ex.getStatusCode());

@@ -32,18 +32,21 @@ public class User {
     @JoinColumn(name = "role_id", referencedColumnName = "id")
     private Role role;
 
+    private String title;
+    private String profileSummary;
+    private String education;
+
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private Date createdDate;
 
     @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
-
     private Date updatedDate;
 
     public enum Status {
         // active-1 inactive(relieve)-0 exclude( permanent delete)-2
-        INACTIVE((byte) 0), ACTIVE((byte) 1),DELETED((byte) 2), EXCLUDE((byte) 3), OTP_VERIFY((byte) 4);
+        INACTIVE((byte) 0), ACTIVE((byte) 1),DELETED((byte) 2), EXCLUDE((byte) 3), OTP_VERIFY((byte) 4),SUPER_ADMIN((byte) 5);
 
         public final byte value;
 
