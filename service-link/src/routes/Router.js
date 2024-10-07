@@ -13,6 +13,8 @@ import JobDetailPage from "../pages/job-detail-page";
 import EmployeeDashboardPage from "../pages/JobSeeker/employee-dashboard-page";
 import ViewAllJobPostPage from "../pages/JobSeeker/view-all-job-post-page";
 import EmployeeDetailViewPage from "../pages/JobSeeker/employee-detail-view-page";
+import ChangePasswordPage from "../pages/change-password-page";
+import EmployeeProfilePage from "../pages/employee-profile-page";
 // import other components as needed
 
 function AppRouter() {
@@ -25,12 +27,10 @@ function AppRouter() {
       if (role === 2) {
         return <Navigate to="/dashboard" />;
       } else if (role === 3) {
-        return <Navigate to="/dashboard" />;
+        return <Navigate to="/dashboardEmployee" />;
       } else if (role === 1) {
         return <Navigate to="/dashboard" />;
       } else if (role === 4) {
-        return <Navigate to="/dashboard" />;
-      } else if (role === 5) {
         return <Navigate to="/dashboard" />;
       } else {
         return <Navigate to="/login" />;
@@ -53,7 +53,7 @@ function AppRouter() {
           />
         }
       />
-      
+
       <Route
         path="/viewCompanyProfile"
         element={
@@ -91,7 +91,6 @@ function AppRouter() {
         }
       />
 
-
       {/* Employeeee Routed _________________________________ */}
       <Route
         path="/dashboardEmployee"
@@ -117,6 +116,24 @@ function AppRouter() {
           <AuthGuard
             element={<EmployeeDetailViewPage />}
             allowedRoles={[1, 2, 3, 4, 5, 6]}
+          />
+        }
+      />
+      <Route
+        path="/changepassword"
+        element={
+          <AuthGuard
+            element={<ChangePasswordPage />}
+            allowedRoles={[1, 2, 3, 4, 5, 6]}
+          />
+        }
+      />
+      <Route
+        path="/employeeprofile"
+        element={
+          <AuthGuard
+            element={<EmployeeProfilePage />}
+            allowedRoles={[1, 2, 3]}
           />
         }
       />

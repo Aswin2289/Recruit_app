@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Updated import
-import { FaTrash, FaEdit } from "react-icons/fa"; // Import icons
+import { useParams, useNavigate } from "react-router-dom";
+import { FaTrash, FaEdit } from "react-icons/fa";
 import { axiosInstance } from "../services/interceptor";
-
+import EditJobPostModal from "./edit-job-post-modal";
 const JobDetails = () => {
-  const { id } = useParams(); // Extract job ID from URL params
-  const navigate = useNavigate(); // Initialize navigate
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [job, setJob] = useState(null);
-  const [applicants, setApplicants] = useState([]); // State for applicants list
+  const [applicants, setApplicants] = useState([]);
   const [loadingJob, setLoadingJob] = useState(true);
   const [loadingApplicants, setLoadingApplicants] = useState(true);
   const [errorJob, setErrorJob] = useState(null);
   const [errorApplicants, setErrorApplicants] = useState(null);
   const [page, setPage] = useState(0);
-  const [size, setSize] = useState(10); // Items per page
+  const [size, setSize] = useState(5);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const jobStatus = {
     0: "Active",
@@ -23,45 +24,41 @@ const JobDetails = () => {
     4: "Pending",
   };
 
-  // Fetch job details using the job ID from API
+  // Define fetchJobDetails outside of useEffect
+  const fetchJobDetails = async () => {
+    try {
+      const response = await axiosInstance.get(`post/company/job/${id}`);
+      const jobData = response.data;
+      setJob(jobData);
+    } catch (err) {
+      setErrorJob("Failed to fetch job details");
+    } finally {
+      setLoadingJob(false);
+    }
+  };
+
+  const fetchApplicants = async () => {
+    try {
+      const response = await axiosInstance.get(`/applicant/list/${id}`, {
+        params: {
+          sortBy: "createDate",
+          sortOrder: "desc",
+          page,
+          size,
+        },
+      });
+      setApplicants(response.data.items || []);
+    } catch (err) {
+      setErrorApplicants("Failed to fetch applicants");
+    } finally {
+      setLoadingApplicants(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchJobDetails = async () => {
-      try {
-        const response = await axiosInstance.get(`post/company/job/${id}`);
-        const jobData = response.data;
-        setJob(jobData); // Set job data
-      } catch (err) {
-        setErrorJob("Failed to fetch job details");
-      } finally {
-        setLoadingJob(false);
-      }
-    };
-
-    const fetchApplicants = async () => {
-      try {
-        const response = await axiosInstance.get(`/applicant/list/${id}`, {
-          params: {
-            // status: '0,1,2,3', // Default status (can be modified as needed)
-            sortBy: "createDate",
-            sortOrder: "desc",
-            page,
-            size,
-          },
-        });
-        console.log(response.data);
-
-        setApplicants(response.data.items || []); // Ensure default empty array
-      } catch (err) {
-        setErrorApplicants("Failed to fetch applicants");
-      } finally {
-        setLoadingApplicants(false);
-      }
-    };
-
     fetchJobDetails();
     fetchApplicants();
   }, [id, page, size]);
-
   if (loadingJob || loadingApplicants) {
     return <div className="text-center text-blue-600 text-lg">Loading...</div>;
   }
@@ -70,34 +67,11 @@ const JobDetails = () => {
     return <div className="text-center text-red-600 text-lg">{errorJob}</div>;
   }
 
-  if (!job)
+  if (!job) {
     return (
       <div className="text-center text-red-600 text-lg">Job not found!</div>
     );
-
-  const handleDelete = (applicantId) => {
-    if (window.confirm("Are you sure you want to delete this applicant?")) {
-      // Call API to delete applicant
-      axiosInstance
-        .put(`/applicant/delete/${applicantId}`)
-        .then(() => {
-          alert("Applicant deleted successfully.");
-          // Optionally refetch applicants or remove from UI
-          setApplicants((prev) => prev.filter((app) => app.id !== applicantId));
-        })
-        .catch((err) => {
-          alert("Failed to delete applicant.");
-        });
-    }
-  };
-
-  const handleViewDetail = (applicantId) => {
-    navigate(`/detailview/${applicantId}`); // Navigate to applicant detail page
-  };
-
-  const handleEditJob = () => {
-    navigate(`/edit-job/${id}`); // Navigate to job edit page
-  };
+  }
 
   const handleDeleteJob = () => {
     if (window.confirm("Are you sure you want to delete this job post?")) {
@@ -105,47 +79,73 @@ const JobDetails = () => {
         .put(`post/company/job/delete/${id}`)
         .then(() => {
           alert("Job post deleted successfully.");
-          navigate("/viewpost"); // Redirect to job list page or any desired route
+          navigate("/viewpost");
         })
-        .catch((err) => {
+        .catch(() => {
           alert("Failed to delete job post.");
         });
     }
   };
 
+  const handleEditJob = () => {
+    navigate(`/edit-job/${id}`);
+  };
+
+  const handleDeleteApplicant = (applicantId) => {
+    if (window.confirm("Are you sure you want to delete this applicant?")) {
+      axiosInstance
+        .delete(`/applicant/${applicantId}`)
+        .then(() => {
+          alert("Applicant deleted successfully.");
+          // Refresh applicants after deletion
+          setApplicants(applicants.filter((app) => app.id !== applicantId));
+        })
+        .catch(() => {
+          alert("Failed to delete applicant.");
+        });
+    }
+  };
+
+  const handleViewDetail = (applicantId) => {
+    navigate(`/detailview/${applicantId}`);
+  };
+
   const handlePageChange = (newPage) => {
     setPage(newPage);
   };
-
-  const handleSizeChange = (e) => {
-    setSize(Number(e.target.value));
-    setPage(0); // Reset to first page when page size changes
+  const handleUpdateJob = () => {
+    fetchJobDetails(); // Refresh job details after update
+    setIsModalOpen(false); // Close the modal after updating
   };
+
   return (
-    <div className="p-4 bg-gray-100 min-h-screen">
-      <div className="max-w-6xl mx-auto">
+    <div className="flex flex-col w-full h-screen p-4 bg-gray-100 overflow-auto">
+      <div className="mx-auto flex flex-col lg:flex-row gap-6 w-full">
         {/* Job Details Card */}
-        <div className="bg-white shadow-md rounded-md p-6 border border-gray-200 mb-6 relative">
-          <h2 className="text-3xl font-bold mb-6 text-blue-700">{job.title}</h2>
+        <div className="bg-white shadow-md rounded-md p-6 border border-gray-200 flex-1">
+          <div className="flex justify-between items-center">
+            <h2 className="text-3xl font-bold mb-6 text-blue-700">
+              {job.title}
+            </h2>
 
-          {/* Edit and Delete Buttons */}
-          <div className="absolute top-4 right-4 flex space-x-2">
-            <button
-              onClick={handleEditJob}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center"
-            >
-              <FaEdit className="inline-block mr-2" />
-              Edit
-            </button>
-            <button
-              onClick={handleDeleteJob}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 flex items-center"
-            >
-              <FaTrash className="inline-block mr-2" />
-              Delete
-            </button>
+            {/* Edit and Delete Buttons */}
+            <div className="flex space-x-2 mb-4">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center"
+              >
+                <FaEdit className="inline-block mr-2" />
+                Edit
+              </button>
+              <button
+                onClick={handleDeleteJob}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 flex items-center"
+              >
+                <FaTrash className="inline-block mr-2" />
+                Delete
+              </button>
+            </div>
           </div>
-
           <div className="mb-4">
             <h3 className="text-xl font-semibold text-gray-700">Description</h3>
             <p className="text-gray-700 text-base">{job.description}</p>
@@ -219,7 +219,7 @@ const JobDetails = () => {
 
         {/* Applicant List Card */}
         {applicants.length > 0 && (
-          <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+          <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200 flex-1">
             <h3 className="text-xl font-semibold text-gray-700 mb-4">
               Applicant List
             </h3>
@@ -230,6 +230,7 @@ const JobDetails = () => {
                   <th className="px-4 py-2 text-left">Name</th>
                   <th className="px-4 py-2 text-left">Experience</th>
                   <th className="px-4 py-2 text-left">Applied On</th>
+                  <th className="px-4 py-2 text-left">Status</th>
                   <th className="px-4 py-2 text-left">Actions</th>
                 </tr>
               </thead>
@@ -240,22 +241,23 @@ const JobDetails = () => {
                       {index + 1 + page * size}
                     </td>
                     <td className="px-4 py-2">{applicant.applicantName}</td>
-                    <td className="px-4 py-2">{applicant.experience}</td>
+                    <td className="px-4 py-2">{applicant.experience} years</td>
                     <td className="px-4 py-2">
                       {new Date(applicant.createDate).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-2 text-center">
+                    <td className="px-4 py-2">{applicant.status}</td>
+                    <td className="px-4 py-2 flex space-x-2">
                       <button
-                        className="bg-green-500 text-white px-2 py-1 rounded-md mr-2"
-                        onClick={() => handleViewDetail(applicant.id)}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="bg-red-500 text-white px-2 py-1 rounded-md"
-                        onClick={() => handleDelete(applicant.id)}
+                        onClick={() => handleDeleteApplicant(applicant.id)}
+                        className="bg-red-500 text-white px-3 py-1 rounded-lg flex items-center"
                       >
                         <FaTrash />
+                      </button>
+                      <button
+                        onClick={() => handleViewDetail(applicant.id)}
+                        className="bg-green-500 text-white px-3 py-1 rounded-lg flex items-center"
+                      >
+                        View
                       </button>
                     </td>
                   </tr>
@@ -263,40 +265,35 @@ const JobDetails = () => {
               </tbody>
             </table>
             <div className="flex justify-between items-center mt-4">
-              {/* Page Size Selector */}
               <div>
-                <label htmlFor="pageSize" className="text-gray-700">
-                  Show{" "}
-                  <select
-                    id="pageSize"
-                    value={size}
-                    onChange={handleSizeChange}
-                    className="border rounded-md p-1"
-                  >
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                  </select>{" "}
-                  entries
+                <label htmlFor="size" className="mr-2">
+                  Items per page:
                 </label>
+                <select
+                  id="size"
+                  value={size}
+                  onChange={(e) => setSize(Number(e.target.value))}
+                  className="border border-gray-300 rounded-md"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
               </div>
-
-              {/* Pagination Controls */}
-              <div className="flex items-center">
+              <div>
                 <button
-                  className="px-3 py-1 border rounded-l-md bg-gray-200 text-gray-800 hover:bg-gray-300"
                   onClick={() => handlePageChange(page - 1)}
                   disabled={page === 0}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded-l"
                 >
                   Previous
                 </button>
-                <span className="px-3 py-1 border bg-white text-gray-800">
-                  Page {page + 1}
-                </span>
+                <span className="px-4">{page + 1}</span>
                 <button
-                  className="px-3 py-1 border rounded-r-md bg-gray-200 text-gray-800 hover:bg-gray-300"
                   onClick={() => handlePageChange(page + 1)}
                   disabled={applicants.length < size}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded-r"
                 >
                   Next
                 </button>
@@ -304,12 +301,14 @@ const JobDetails = () => {
             </div>
           </div>
         )}
-
-        {errorApplicants && (
-          <div className="text-center text-red-600 text-lg">
-            {errorApplicants}
-          </div>
-        )}
+      </div>
+      <div className="">
+        <EditJobPostModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          job={job}
+          onUpdate={handleUpdateJob}
+        />
       </div>
     </div>
   );

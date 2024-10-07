@@ -41,8 +41,9 @@ function LoginPage() {
         case "1":
         case "2":
         case "3":
+          navigate("/dashboardEmployee");
+          break;
         case "4":
-        case "5":
           navigate("/dashboard");
           break;
         default:

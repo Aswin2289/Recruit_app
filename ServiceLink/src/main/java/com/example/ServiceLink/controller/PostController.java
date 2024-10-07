@@ -30,6 +30,7 @@ public class PostController {
 
     @PostMapping("/add")
     public ResponseEntity<Object> addPost(@Valid @RequestBody PostRequestDTO postRequestDTO) {
+        System.out.println("===="+postRequestDTO.getShift());
         postService.addPostService(postRequestDTO);
         return new ResponseEntity<>(
                 new SuccessResponseDTO("201", "Job Post Successfully created"), HttpStatus.CREATED);
@@ -69,6 +70,7 @@ public class PostController {
     @GetMapping("/company/job/{id}")
     public ResponseEntity<CompanyPostDetailResponseDTO> getCompanyPostById(@PathVariable Long id) {
         CompanyPostDetailResponseDTO post = postService.getCompanyPostById(id);
+
         return ResponseEntity.ok(post);
     }
 

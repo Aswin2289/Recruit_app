@@ -1,11 +1,16 @@
 import React, { useState, useRef } from "react";
 import logo from "../../assest/linkedin.png"
+import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/use-auth";
 const Header = () => {
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const servicesRef = useRef(null);
   const profileRef = useRef(null);
-
+  const navigate = useNavigate();
+  const { getUserDetails } = useAuth();
+  
+  const { role } = getUserDetails();
   const handleClickOutside = (event) => {
     if (servicesRef.current && !servicesRef.current.contains(event.target)) {
       setIsServicesOpen(false);
@@ -22,6 +27,21 @@ const Header = () => {
     };
   }, []);
 
+  const handleLogout=()=>{
+    localStorage.clear();
+    navigate("/login");
+  }
+  const handleViewProfile=()=>{
+      if(role==4){
+        navigate("/viewCompanyProfile")
+      }
+      else if(role==3){
+        navigate("/employeeprofile")
+      }
+      else{
+        navigate("/dashboard")
+      }
+  }
   return (
     <header className="bg-indigo-500 text-white shadow-lg fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto flex justify-between items-center p-4">
@@ -87,18 +107,16 @@ const Header = () => {
                 >
                   View Post
                 </a>
-                <a
-                  href="/dashboard"
-                  className="block px-4 py-2 hover:bg-gray-200 text-center truncate"
-                >
-                  Service 3
-                </a>
+               
               </div>
             )}
           </div>
 
           <a href="/dashboard" className="hover:text-gray-300">
-            About Us
+            My subscription
+          </a>
+          <a href="/dashboard" className="hover:text-gray-300">
+            My Application
           </a>
           <a href="/dashboard" className="hover:text-gray-300">
             Contact Us
@@ -126,19 +144,15 @@ const Header = () => {
             {isProfileOpen && (
               <div className="absolute right-0 bg-white text-black shadow-lg mt-2 rounded w-48 z-10">
                 <a
-                  href="/viewCompanyProfile"
+                  onClick={handleViewProfile}
+                  // href="/viewCompanyProfile"
                   className="block px-4 py-2 hover:bg-gray-200 text-center truncate"
                 >
                   View Profile
                 </a>
                 <a
-                  href="/dashboard"
-                  className="block px-4 py-2 hover:bg-gray-200 text-center truncate"
-                >
-                  Change Password
-                </a>
-                <a
-                  href="/dashboard"
+                  // href="/dashboard"
+                  onClick={handleLogout}
                   className="block px-4 py-2 hover:bg-gray-200 text-center truncate"
                 >
                   Logout

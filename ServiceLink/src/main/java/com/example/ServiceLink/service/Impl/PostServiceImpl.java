@@ -24,9 +24,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,17 +39,36 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public void addPostService(PostRequestDTO postRequestDTO) {
+        // Validate the company
         commonUtil.validateCompany();
+
+        // Validate the application deadline
         LocalDate currentDate = LocalDate.now();
-        if (postRequestDTO.getApplicationDeadline().isEqual(currentDate) || (postRequestDTO.getApplicationDeadline().isBefore(currentDate))) {
+        if (postRequestDTO.getApplicationDeadline().isEqual(currentDate) || postRequestDTO.getApplicationDeadline().isBefore(currentDate)) {
             throw new BadRequestException(messageSource.getMessage("APPLICATION_DEADLINE", null, Locale.ENGLISH));
         }
-        byte[] statusUser = {User.Status.ACTIVE.value};
-        User user = userRepository.findByIdAndStatusIn(postRequestDTO.getUserId(), statusUser).orElseThrow(
-                () -> new BadRequestException(messageSource.getMessage("USER_NOT_FOUND", null, Locale.ENGLISH)));
 
-        postRepository.save(new JobPost(postRequestDTO, user));
+        // Check if the user exists and is active
+        byte[] statusUser = {User.Status.ACTIVE.value};
+        User user = userRepository.findByIdAndStatusIn(postRequestDTO.getUserId(), statusUser)
+                .orElseThrow(() -> new BadRequestException(messageSource.getMessage("USER_NOT_FOUND", null, Locale.ENGLISH)));
+
+        // If shift is null or empty, initialize it as an empty Set
+        Set<String> shiftStrings = postRequestDTO.getShift() != null ? postRequestDTO.getShift() : new HashSet<>();
+
+        // Convert Set<String> to Set<Byte>
+        Set<Byte> shiftSet = shiftStrings.stream()
+                .map(Byte::parseByte)  // Convert each string to a Byte
+                .collect(Collectors.toSet());
+
+        // Create a new JobPost object using the DTO and the found User entity
+        JobPost jobPost = new JobPost(postRequestDTO, user);
+        jobPost.setShift(shiftSet);  // Set the shift field with the converted set
+
+        // Save the JobPost to the database
+        postRepository.save(jobPost);
     }
+
 
     @Override
     public PagedResponseDTO<JobPost> getAllJobPostWithFilter(

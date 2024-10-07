@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -29,4 +31,6 @@ public class PostRequestDTO {
     @NotNull(message = "USER_ID_REQUIRED")
     private Integer userId;
     private LocalDate applicationDeadline;
+
+    private Set<String> shift;
 }

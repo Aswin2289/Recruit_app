@@ -3,8 +3,7 @@ package com.example.ServiceLink.service.Impl;
 import com.example.ServiceLink.entity.Applicant;
 import com.example.ServiceLink.entity.Role;
 import com.example.ServiceLink.entity.User;
-import com.example.ServiceLink.entity.dto.requestDTO.LoginRequestDTO;
-import com.example.ServiceLink.entity.dto.requestDTO.UserRequestDTO;
+import com.example.ServiceLink.entity.dto.requestDTO.*;
 import com.example.ServiceLink.entity.dto.responseDTO.JwtResponseDTO;
 import com.example.ServiceLink.exceptionhandler.BadRequestException;
 import com.example.ServiceLink.repository.ApplicantRepository;
@@ -147,6 +146,63 @@ public class UserServiceImpl implements UserService {
         byte[] userStatus={User.Status.ACTIVE.value};
 
         return userRepository.findByIdAndStatusIn(userId, userStatus).orElseThrow(() -> new BadRequestException(messageSource.getMessage("USER_NOT_FOUND", null, Locale.ENGLISH)));
+    }
+
+    @Override
+    public void changePassword(Integer id, ChangePasswordDTO changePasswordDTO) {
+
+        byte[] userStatus={User.Status.ACTIVE.value};
+        User user=userRepository.findByIdAndStatusIn(id,userStatus).orElseThrow(() -> new BadRequestException(messageSource.getMessage("USER_NOT_FOUND", null, Locale.ENGLISH)));
+
+        if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())){
+            throw new BadRequestException(
+                    messageSource.getMessage("CURRENT_PASSWORD_MISMATCH", null, Locale.ENGLISH));
+        }
+        if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmPassword())){
+            throw new BadRequestException(
+                    messageSource.getMessage("NEW_PASSWORD_MISMATCH", null, Locale.ENGLISH));
+        }
+        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+        userRepository.save(user);
+
+    }
+
+    @Override
+    public void editProfile(Integer id, CompanyEditProfileDTO companyEditProfileDTO) {
+        byte[] userStatus={User.Status.ACTIVE.value};
+        User user=userRepository.findByIdAndStatusIn(id,userStatus).orElseThrow(() -> new BadRequestException(messageSource.getMessage("USER_NOT_FOUND", null, Locale.ENGLISH)));
+
+        user.setCompanyName(companyEditProfileDTO.getCompanyName());
+        user.setProfileSummary(companyEditProfileDTO.getProfileSummary());
+        user.setWebsite(companyEditProfileDTO.getWebsite());
+        user.setLocation(companyEditProfileDTO.getLocation());
+        user.setEmail(companyEditProfileDTO.getEmail());
+        user.setPhone(companyEditProfileDTO.getPhone());
+        user.setAddress(companyEditProfileDTO.getAddress());
+        userRepository.save(user);
+    }
+
+    @Override
+    public void deleteProfile(Integer id) {
+        byte[] userStatus={User.Status.ACTIVE.value};
+        User user=userRepository.findByIdAndStatusIn(id,userStatus).orElseThrow(() -> new BadRequestException(messageSource.getMessage("USER_NOT_FOUND", null, Locale.ENGLISH)));
+        user.setStatus(User.Status.DELETED.value);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void editEmployeeProfile(Integer id, EmployeeEditProfileDTO employeeEditProfileDTO) {
+        byte[] userStatus={User.Status.ACTIVE.value};
+        User user=userRepository.findByIdAndStatusIn(id,userStatus).orElseThrow(() -> new BadRequestException(messageSource.getMessage("USER_NOT_FOUND", null, Locale.ENGLISH)));
+        user.setName(employeeEditProfileDTO.getName());
+        user.setTitle(employeeEditProfileDTO.getTitle());
+        user.setProfileSummary(employeeEditProfileDTO.getProfileSummary());
+        user.setEducation(employeeEditProfileDTO.getEducation());
+        user.setLocation(employeeEditProfileDTO.getLocation());
+        user.setWebsite(employeeEditProfileDTO.getWebsite());
+        user.setAddress(employeeEditProfileDTO.getAddress());
+        user.setExperience(employeeEditProfileDTO.getExperience());
+        userRepository.save(user);
     }
 
 

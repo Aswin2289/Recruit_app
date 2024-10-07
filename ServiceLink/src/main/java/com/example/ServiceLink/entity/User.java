@@ -33,8 +33,17 @@ public class User {
     private Role role;
 
     private String title;
+    @Column(length = 1500)
     private String profileSummary;
     private String education;
+    private String companyName;
+
+    private String location;
+    private String website;
+    private String address;
+    private String experience;
+
+    private byte userType;
 
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
@@ -51,6 +60,17 @@ public class User {
         public final byte value;
 
         Status(byte value) {
+            this.value = value;
+        }
+    }
+
+    public enum UserType {
+        // active-1 inactive(relieve)-0 exclude( permanent delete)-2
+        APPLICANT((byte) 0), COMPANY((byte) 1),RECRUITER((byte) 2);
+
+        public final byte value;
+
+        UserType(byte value) {
             this.value = value;
         }
     }

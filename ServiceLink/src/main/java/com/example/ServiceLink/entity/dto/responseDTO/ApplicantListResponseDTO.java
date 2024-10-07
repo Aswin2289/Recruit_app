@@ -12,6 +12,7 @@ public class ApplicantListResponseDTO {
     private String email;
     private String experience;
     private LocalDate createDate;
+    private byte status;
 
 
 }

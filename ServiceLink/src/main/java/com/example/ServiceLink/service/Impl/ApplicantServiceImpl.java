@@ -150,6 +150,7 @@ public class ApplicantServiceImpl implements ApplicantService {
         dto.setEmail(applicant.getUser().getEmail());
         dto.setExperience( "1"); // Assuming experience is stored in User applicant.getUser().getExperience()
         dto.setCreateDate(applicant.getCreatedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        dto.setStatus(applicant.getStatus());
         return dto;
     }
 

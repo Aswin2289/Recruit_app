@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../services/interceptor";
 import debounce from "lodash.debounce";
 import DeleteIcon from "@mui/icons-material/Delete"; // Import Delete Icon from MUI
+import EditIcon from "@mui/icons-material/Edit"; // Import Edit Icon from MUI
+import Tooltip from "@mui/material/Tooltip";
+import EditJobPostModal from "./edit-job-post-modal";
 
 const ViewCompanyWisePost = () => {
   const [jobs, setJobs] = useState([]);
@@ -12,6 +15,11 @@ const ViewCompanyWisePost = () => {
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [jobToEdit, setJobToEdit] = useState(null);
+  const [loadingJob, setLoadingJob] = useState(false); // Loading state for job details
+  const [errorJob, setErrorJob] = useState(null); // Error state for job details
+
   // Map status byte to its corresponding string label and color
   const getStatusLabelAndStyle = (statusValue) => {
     switch (statusValue) {
@@ -137,6 +145,30 @@ const ViewCompanyWisePost = () => {
     return new Date(year, month - 1, day).toLocaleDateString();
   };
 
+  const fetchJobDetails = async (id) => {
+    setLoadingJob(true); // Start loading job details
+    setErrorJob(null); // Reset job error state
+    try {
+      const response = await axiosInstance.get(`post/company/job/${id}`);
+      const jobData = response.data;
+      setJobToEdit(jobData); // Set the job details in state
+    } catch (err) {
+      setErrorJob("Failed to fetch job details.");
+    } finally {
+      setLoadingJob(false); // Stop loading job details
+    }
+  };
+
+  const openEditModal = (job) => {
+    fetchJobDetails(job.id); // Fetch job details before opening the modal
+    setIsModalOpen(true); // Open the modal
+  };
+
+  const handleUpdateJob = () => {
+    fetchJobs(page, searchTerm); // Refresh jobs after updating
+    setIsModalOpen(false); // Close the modal after updating
+  };
+
   return (
     <div className="h-screen p-8 bg-gray-100">
       <h2 className="text-2xl font-bold mb-6 text-blue-700 text-center">
@@ -167,13 +199,25 @@ const ViewCompanyWisePost = () => {
                 key={job.id}
                 className="relative bg-gradient-to-r from-gray-200 via-gray-200 to-gray-300 border border-gray-200 rounded-lg shadow-md p-4 flex items-center"
               >
-                {/* Delete Icon at the top-right corner */}
-                <button
-                  onClick={() => handleDelete(job.id)}
-                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                >
-                  <DeleteIcon />
-                </button>
+                {/* Edit and Delete Icons at the top-right corner */}
+                <div className="absolute top-2 right-2 flex space-x-2 mb-2">
+                  <Tooltip title="Edit Job" arrow>
+                    <button
+                      onClick={() => openEditModal(job)} // Fetch job details before opening modal
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      <EditIcon fontSize="small" />
+                    </button>
+                  </Tooltip>
+                  <Tooltip title="Delete Job" arrow>
+                    <button
+                      onClick={() => handleDelete(job.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <DeleteIcon />
+                    </button>
+                  </Tooltip>
+                </div>
 
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-blue-600 mb-1">
@@ -204,9 +248,9 @@ const ViewCompanyWisePost = () => {
                   </p>
                   <button
                     onClick={() => viewJobDetails(job.id)}
-                    className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 transition"
+                    className="px-3 py-1 text-xs text-white bg-blue-500 hover:bg-blue-600 rounded-md"
                   >
-                    View More
+                    View Details
                   </button>
                 </div>
               </div>
@@ -214,7 +258,18 @@ const ViewCompanyWisePost = () => {
           })}
         </div>
       )}
-      {loading && <div className="text-center">Loading more jobs...</div>}
+
+      {/* Edit Job Modal */}
+      {isModalOpen && (
+        <EditJobPostModal
+          job={jobToEdit}
+          isOpen={isModalOpen}
+          loading={loadingJob}
+          error={errorJob}
+          onClose={() => setIsModalOpen(false)}
+          onUpdateJob={handleUpdateJob}
+        />
+      )}
     </div>
   );
 };
